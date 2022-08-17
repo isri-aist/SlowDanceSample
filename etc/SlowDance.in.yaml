@@ -5,7 +5,7 @@ Managed: false
 StepByStep: true
 # Change idle behaviour, if true the state is kept until transition,
 # otherwise the FSM holds the last state until transition
-IdleKeepState: false
+IdleKeepState: true
 # Where to look for state libraries
 StatesLibraries:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
@@ -13,17 +13,26 @@ StatesLibraries:
 # Where to look for state files
 StatesFiles:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
-- "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
-# If true, state factory will be more verbose
-VerboseStateFactory: false
+- "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data" # If true, state factory will be more verbose VerboseStateFactory: false
 # Additional robots to load
 robots:
   ground:
     module: env/ground
+  chair:
+    module: env/chair
+    init_pos:
+      translation: [0, 0, 0]
+  ## We don't use the hrp4 section here to set the robot initial position
+  # Instead it will be computed in InitialPose state
+  # For reference, this is how you would set the robot initial pose from YAML
+  # hrp4:
+  #   init_pos:
+  #     translation: [0, 0, 0.5]
+
 # General constraints, always on
 constraints:
 - type: contact
-- type: dynamics
+- type: kinematics
   damper: [0.1, 0.01, 0.5]
 - type: compoundJoint
 # Collision constraint
@@ -31,28 +40,76 @@ collisions:
 - type: collision
   useMinimal: true
 # Initial set of contacts
-contacts:
-- r1: jvrc1
-  r2: ground
-  r1Surface: LeftFoot
-  r2Surface: AllGround
-- r1: jvrc1
-  r2: ground
-  r1Surface: RightFoot
-  r2Surface: AllGround
+contacts: []
 
-# Some options for a specific robot
-jvrc1:
-  posture:
-    stiffness: 1
-    weight: 10
-  ff:
-    stiffness: 2
-    weight: 100
+default_seated_posture: &default_seated_posture
+  R_HIP_P: [-1.34]
+  L_HIP_P: [-1.34]
+  L_HIP_R: [ 0.02]
+  R_HIP_R: [ -0.02]
+  L_HIP_Y: [0.0]
+  R_HIP_Y: [0.0]
+  CHEST_P: [0.5]
+  R_KNEE_P: [1.4]
+  L_KNEE_P: [1.4]
+  L_ANKLE_P: [0.1]
+  L_ANKLE_R: [-0.13]
+  R_ANKLE_P: [0.1]
+  R_ANKLE_R: [0.13]
+  R_SHOULDER_P: [-0.052]
+  L_SHOULDER_P: [-0.052]
+  L_ELBOW_P: [-1.44]
+  R_ELBOW_P: [-1.44]
+
 # Implement some additional text states
-states: {}
+states:
+  InitialPose:
+    base: SlowDance_Initial
+    buttock_offset:
+      translation: [0.0, 0, 0.05]
+      rotation: [0, -0.5, 0]
+  InitialPosture:
+    base: Posture
+    completion:
+      AND:
+        - eval: 0.6
+        - speed: 0.1
+    postureTask:
+      stiffness: 10
+      target:
+        <<: *default_seated_posture
+    AddContactsAfter:
+      - r1: hrp4
+        r2: chair
+        r1Surface: Buttock
+        r2Surface: Top
+      - r1: hrp4
+        r2: chair
+        r1Surface: Back
+        r2Surface: Back
+  ArmsUp:
+    base: Posture
+    completion:
+      AND:
+        - eval: 0.6
+        - speed: 0.1
+    postureTask:
+      target:
+        <<: *default_seated_posture
+        R_SHOULDER_P: [-2.56]
+        R_ELBOW_P: [0.0]
+        L_SHOULDER_P: [-2.56]
+        L_ELBOW_P: [0.0]
+
+  Pause3s:
+    base: Pause
+    duration: 3
+
 # Transitions map
 transitions:
-- [SlowDance_Initial, OK, SlowDance_Initial, Strict]
+- [InitialPose, OK, InitialPosture, Auto]
+- [InitialPosture, OK, Pause3s, Auto]
+- [Pause3s, OK, ArmsUp, Auto]
+- [ArmsUp, OK, InitialPosture, Auto]
 # Initial state
-init: SlowDance_Initial
+init: InitialPose
