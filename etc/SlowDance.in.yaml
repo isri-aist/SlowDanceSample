@@ -85,7 +85,10 @@ states:
     buttock_offset:
       translation: [0.0, 0, 0.05]
       rotation: [0, -0.5, 0]
-  InitialPosture:
+
+  # Inherit from this state if you want to start from the current posture
+  # and only modify some joints
+  CurrentPosture:
     base: Posture
     completion:
       AND:
@@ -93,8 +96,20 @@ states:
         - speed: 0.1
     postureTask:
       stiffness: 10
+
+  # Inherit from this state if you want to define a posture based on the default_seated_posture configuration
+  DefaultSeatedPosture:
+    base: CurrentPosture
+    postureTask:
       target:
         <<: *default_seated_posture
+
+  # Go the initial posture, that is the default_seated_posture defined above.
+  # After reaching that posture, add contacts with the chair.
+  # Note: This state is intended to be used with the robot in the air hanging from the ropes, and we will then lower it manually onto the chair
+  #       In the future we can consider to write a controller to make it seat by itself, but that's much trickier
+  InitialPosture:
+    base: DefaultSeatedPosture
     AddContactsAfter:
       - r1: hrp4
         r2: chair
@@ -105,27 +120,27 @@ states:
         r1Surface: Back
         r2Surface: Back
 
+
+  # Lift SHOULDER_R joints starting from the default_seated_posture
   ShouldersUp:
-    base: Posture
-    completion:
-      AND:
-        - eval: 0.6
-        - speed: 0.1
+    base: DefaultSeatedPosture
     postureTask:
       target:
-        <<: *default_seated_posture
         R_SHOULDER_R: [-1.5]
         L_SHOULDER_R: [1.5]
 
-  ArmsUp:
-    base: Posture
-    completion:
-      AND:
-        - eval: 0.6
-        - speed: 0.1
+  # Rotate SHOULDER_Y from the current posture
+  ShouldersY:
+    base: CurrentPosture
     postureTask:
       target:
-        <<: *default_seated_posture
+          R_SHOULDER_Y: [-1.5]
+          L_SHOULDER_Y: [1.5]
+
+  ArmsUp:
+    base: CurrentPosture
+    postureTask:
+      target:
         R_SHOULDER_P: [-2.56]
         R_ELBOW_P: [0.0]
         L_SHOULDER_P: [-2.56]
@@ -141,6 +156,7 @@ transitions:
 - [InitialPosture, OK, Pause2s, Auto]
 - [Pause2s, OK, ArmsUp, Auto]
 - [ArmsUp, OK, ShouldersUp, Auto]
-- [ShouldersUp, OK, InitialPosture, Auto]
+- [ShouldersUp, OK, ShouldersY, Auto]
+- [ShouldersY, OK, InitialPosture, Auto]
 # Initial state
 init: InitialPose
