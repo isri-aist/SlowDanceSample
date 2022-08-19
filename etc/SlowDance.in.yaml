@@ -43,23 +43,40 @@ collisions:
 contacts: []
 
 default_seated_posture: &default_seated_posture
-  R_HIP_P: [-1.34]
-  L_HIP_P: [-1.34]
-  L_HIP_R: [ 0.02]
-  R_HIP_R: [ -0.02]
-  L_HIP_Y: [0.0]
   R_HIP_Y: [0.0]
-  CHEST_P: [0.5]
+  R_HIP_R: [ -0.02]
+  R_HIP_P: [-1.34]
   R_KNEE_P: [1.4]
+  R_ANKLE_P: [0.1]
+  R_ANKLE_R: [0.13]
+  L_HIP_Y: [0.0]
+  L_HIP_R: [ 0.02]
+  L_HIP_P: [-1.34]
   L_KNEE_P: [1.4]
   L_ANKLE_P: [0.1]
   L_ANKLE_R: [-0.13]
-  R_ANKLE_P: [0.1]
-  R_ANKLE_R: [0.13]
+  CHEST_P: [0.5]
+  CHEST_Y: [0.0]
+  NECK_Y: [0.0]
+  NECK_P: [0.0]
   R_SHOULDER_P: [-0.052]
-  L_SHOULDER_P: [-0.052]
-  L_ELBOW_P: [-1.44]
+  R_SHOULDER_R: [-0.174444]
+  R_SHOULDER_Y: [0.0]
   R_ELBOW_P: [-1.44]
+  R_WRIST_Y: [0.0]
+  R_WRIST_P: [0.0]
+  R_WRIST_R: [0.0]
+  R_HAND_J0: [0.0]
+  R_HAND_J1: [0.0]
+  L_SHOULDER_P: [-0.052]
+  L_SHOULDER_R: [0.174444]
+  L_SHOULDER_Y: [0.0]
+  L_ELBOW_P: [-1.44]
+  L_WRIST_Y: [0.0]
+  L_WRIST_P: [0.0]
+  L_WRIST_R: [0.0]
+  L_HAND_J0: [0.0]
+  L_HAND_J1: [0.0]
 
 # Implement some additional text states
 states:
@@ -87,6 +104,19 @@ states:
         r2: chair
         r1Surface: Back
         r2Surface: Back
+
+  ShouldersUp:
+    base: Posture
+    completion:
+      AND:
+        - eval: 0.6
+        - speed: 0.1
+    postureTask:
+      target:
+        <<: *default_seated_posture
+        R_SHOULDER_R: [-1.5]
+        L_SHOULDER_R: [1.5]
+
   ArmsUp:
     base: Posture
     completion:
@@ -101,15 +131,16 @@ states:
         L_SHOULDER_P: [-2.56]
         L_ELBOW_P: [0.0]
 
-  Pause3s:
+  Pause2s:
     base: Pause
-    duration: 3
+    duration: 2
 
 # Transitions map
 transitions:
 - [InitialPose, OK, InitialPosture, Auto]
-- [InitialPosture, OK, Pause3s, Auto]
-- [Pause3s, OK, ArmsUp, Auto]
-- [ArmsUp, OK, InitialPosture, Auto]
+- [InitialPosture, OK, Pause2s, Auto]
+- [Pause2s, OK, ArmsUp, Auto]
+- [ArmsUp, OK, ShouldersUp, Auto]
+- [ShouldersUp, OK, InitialPosture, Auto]
 # Initial state
 init: InitialPose
