@@ -38,11 +38,19 @@ constraints:
 # Collision constraint
 collisions:
 - type: collision
-  #r1Index: 0
-  #r2Index: 1
   useMinimal: true
 # Initial set of contacts
-contacts: []
+contacts:
+  - r1: hrp4
+    r2: ground
+    r1Surface: LeftFoot
+    r2Surface: AllGround
+    #    dof: [0, 0, 1, 1, 1, 0]
+  - r1: hrp4
+    r2: ground
+    r1Surface: RightFoot
+    r2Surface: AllGround
+    # dof: [0, 0, 1, 1, 1, 0]
 
 default_seated_posture: &default_seated_posture
   R_HIP_Y: [-0.29]
@@ -97,7 +105,7 @@ states:
         - eval: 0.6
         - speed: 0.1
     postureTask:
-      stiffness: 10
+      stiffness: 15
 
   # Inherit from this state if you want to define a posture based on the default_seated_posture configuration
   DefaultSeatedPosture:
@@ -169,6 +177,10 @@ states:
         L_SHOULDER_Y: [1.22]
   State_3:
     base: CurrentPosture
+    completion:
+      AND:
+        - eval: 0.6
+        - speed: 0.1
     postureTask:
       target:
        NECK_Y: [0.78]
@@ -388,55 +400,86 @@ states:
     duration: 3
   Pause5s:
     base: Pause
-    duration: 5  
+    duration: 5
+
+  MotionFSM:
+    base: Meta
+    StepByStep: false
+    transitions:
+    - [InitialPose, OK, InitialPosture, Auto]
+    - [InitialPosture, OK, State_1, Auto]
+    - [State_1, OK, State_2, Auto]
+    - [State_2, OK, State_3, Auto]
+    - [State_3, OK, State_4, Auto]
+    - [State_4, OK, State_0, Auto]
+    - [State_0, OK, State_00, Auto]
+    - [State_00, OK, State_0a, Auto]
+    - [State_0a, OK, State_00a, Auto]
+    - [State_00a, OK,  State_5, Auto]
+    - [State_5, OK, State_6, Auto]
+    - [State_6, OK, State_7, Auto]
+    - [State_7, OK, State_8, Auto]
+    - [State_8, OK, State_9, Auto]
+    - [State_9, OK, State_10, Auto]
+    - [State_10, OK, State_7a, Auto]
+    - [State_7a, OK, State_8a, Auto]
+    - [State_8a, OK, State_9a, Auto]
+    - [State_9a, OK, State_10a, Auto]
+    - [State_10a, OK, State_11, Auto]
+    - [State_11, OK, State_12, Auto]
+    - [State_12, OK, State_13, Auto]
+    - [State_13, OK, State_14, Auto]
+    - [State_14, OK, State_11a, Auto]
+    - [State_11a, OK, State_12a, Auto]
+    - [State_12a, OK, State_13a, Auto]
+    - [State_13a, OK, State_14a, Auto]
+    - [State_14a, OK, State_10c, Auto]
+    - [State_10c, OK, State_15, Auto]
+    - [State_15, OK, State_16, Auto]
+    - [State_16, OK, State_17, Auto]
+    - [State_17, OK, State_16a, Auto]
+    - [State_16a, OK, State_17a, Auto]
+    - [State_17a, OK, State_20, Auto]
+    - [State_20, OK, State_21, Auto]
+    - [State_21, OK, State_22, Auto]
+    - [State_22, OK, State_23, Auto]
+    - [State_23, OK, State_24, Auto]
+    - [State_24, OK, State_23a, Auto]
+    - [State_23a, OK, State_24a, Auto]
+    - [State_24a, OK, State_23b, Auto]
+    - [State_23b, OK, State_24b, Auto]
+    - [State_24b, OK, State_23c, Auto]
+    - [State_23c, OK, State_24c, Auto]
+    - [State_24c, OK, HalfSitting, Auto]
+
+  CoMState:
+    base: MetaTasks
+    tasks:
+      CoMTask:
+        type: com
+        weight: 1000
+        stiffness: 10
+        above: [LeftFoot, RightFoot]
+
+  StabilizedMotion:
+    base: Parallel
+    states: [CoMState, MotionFSM]
+
 # Transitions map
 transitions:
-- [InitialPose, OK, InitialPosture, Auto]
-- [InitialPosture, OK, State_1, Auto]
-- [State_1, OK, State_2, Auto]
-- [State_2, OK, State_3, Auto]
-- [State_3, OK, State_4, Auto]
-- [State_4, OK, State_0, Auto]
-- [State_0, OK, State_00, Auto]
-- [State_00, OK, State_0a, Auto]
-- [State_0a, OK, State_00a, Auto]
-- [State_00a, OK,  State_5, Auto]
-- [State_5, OK, State_6, Auto]
-- [State_6, OK, State_7, Auto]
-- [State_7, OK, State_8, Auto]
-- [State_8, OK, State_9, Auto]
-- [State_9, OK, State_10, Auto]
-- [State_10, OK, State_7a, Auto]
-- [State_7a, OK, State_8a, Auto]
-- [State_8a, OK, State_9a, Auto]
-- [State_9a, OK, State_10a, Auto]
-- [State_10a, OK, State_11, Auto]
-- [State_11, OK, State_12, Auto]
-- [State_12, OK, State_13, Auto]
-- [State_13, OK, State_14, Auto]
-- [State_14, OK, State_11a, Auto]
-- [State_11a, OK, State_12a, Auto]
-- [State_12a, OK, State_13a, Auto]
-- [State_13a, OK, State_14a, Auto]
-- [State_14a, OK, State_10c, Auto]
-- [State_10c, OK, State_15, Auto]
-- [State_15, OK, State_16, Auto]
-- [State_16, OK, State_17, Auto]
-- [State_17, OK, State_16a, Auto]
-- [State_16a, OK, State_17a, Auto]
-- [State_17a, OK, State_20, Auto]
-- [State_20, OK, State_21, Auto]
-- [State_21, OK, State_22, Auto]
-- [State_22, OK, State_23, Auto]
-- [State_23, OK, State_24, Auto]
-- [State_24, OK, State_23a, Auto]
-- [State_23a, OK, State_24a, Auto]
-- [State_24a, OK, State_23b, Auto]
-- [State_23b, OK, State_24b, Auto]
-- [State_24b, OK, State_23c, Auto]
-- [State_23c, OK, State_24c, Auto]
-- [State_24c, OK, InitialPosture, Auto]
-
+  - [StabilizedMotion, OK, StabilizedMotion, Strict]
 
 # Initial state
-init: InitialPose
+init: StabilizedMotion
+
+ObserverPipelines:
+  name: "ObserverPipeline"
+  gui: true
+  observers:
+    - type: Encoder
+    - type: Attitude
+      required: false
+    - type: KinematicInertial
+      config:
+        anchorFrame:
+          maxAnchorFrameDiscontinuity: 0.02
