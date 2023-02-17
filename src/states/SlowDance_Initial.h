@@ -11,4 +11,11 @@ struct SlowDance_Initial : mc_control::fsm::State
 
     void teardown(mc_control::fsm::Controller & ctl) override;
 private:
+std::shared_ptr<mc_tasks::PostureTask> postureTask;
+std::vector<std::vector<std::vector<double>>> desired_pos_vector;
+unsigned iter_ = 0;
+int index_ = 0;
+int t_ = 200;
+std::string jointName = "NECK_Y";
+int jointIndex = 0;
 };
