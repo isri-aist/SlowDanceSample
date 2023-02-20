@@ -5,7 +5,7 @@ Managed: false
 StepByStep: true
 # Change idle behaviour, if true the state is kept until transition,
 # otherwise the FSM holds the last state until transition
-IdleKeepState: false #was true
+IdleKeepState: false
 # Where to look for state libraries
 StatesLibraries:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
@@ -15,14 +15,13 @@ StatesFiles:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
 - "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data" # If true, state factory will be more verbose VerboseStateFactory: false
 # Additional robots to load
-VerboseStateFactory: false
 robots:
   ground:
     module: env/ground
   chair:
     module: env/chair
     init_pos:
-      translation: [-0.5, 0, 0]
+      translation: [0, 0, 0.2]
   ## We don't use the hrp4 section here to set the robot initial position
   # Instead it will be computed in InitialPose state
   # For reference, this is how you would set the robot initial pose from YAML
@@ -43,461 +42,427 @@ collisions:
 # Initial set of contacts
 contacts: []
 
-
-# default_seated_posture: &default_seated_posture
-#   R_HIP_Y: [0.0]
-#   R_HIP_R: [ -0.02]
-#   R_HIP_P: [-1.34]
-#   R_KNEE_P: [1.4]
-#   R_ANKLE_P: [0.1]
-#   R_ANKLE_R: [0.13]
-#   L_HIP_Y: [0.0]
-#   L_HIP_R: [ 0.02]
-#   L_HIP_P: [-1.34]
-#   L_KNEE_P: [1.4]
-#   L_ANKLE_P: [0.1]
-#   L_ANKLE_R: [-0.13]
-#   CHEST_P: [0.5]
-#   CHEST_Y: [0.0]
-#   NECK_Y: [0.0]
-#   NECK_P: [0.0]
-#   R_SHOULDER_P: [-0.052]
-#   R_SHOULDER_R: [-0.174444]
-#   R_SHOULDER_Y: [0.0]
-#   R_ELBOW_P: [-1.44]
-#   R_WRIST_Y: [0.0]
-#   R_WRIST_P: [0.0]
-#   R_WRIST_R: [0.0]
-#   R_HAND_J0: [0.0]
-#   R_HAND_J1: [0.0]
-#   L_SHOULDER_P: [-0.052]
-#   L_SHOULDER_R: [0.174444]
-#   L_SHOULDER_Y: [0.0]
-#   L_ELBOW_P: [-1.44]
-#   L_WRIST_Y: [0.0]
-#   L_WRIST_P: [0.0]
-#   L_WRIST_R: [0.0]
-#   L_HAND_J0: [0.0]
-#   L_HAND_J1: [0.0]
+default_seated_posture: &default_seated_posture
+  R_HIP_Y: [0.0]
+  R_HIP_R: [-0.02]
+  R_HIP_P: [-0.95]
+  R_KNEE_P: [1.4]
+  R_ANKLE_P: [0.1]
+  R_ANKLE_R: [0.13]
+  L_HIP_Y: [0.0]
+  L_HIP_R: [0.02]
+  L_HIP_P: [-0.95]
+  L_KNEE_P: [1.4]
+  L_ANKLE_P: [0.1]
+  L_ANKLE_R: [-0.13]
+  CHEST_P: [0.5]
+  CHEST_Y: [0.0]
+  NECK_Y: [0.0]
+  NECK_P: [0.0]
+  R_SHOULDER_P: [-0.052]
+  R_SHOULDER_R: [-0.174444]
+  R_SHOULDER_Y: [0.0]
+  R_ELBOW_P: [-1.44]
+  R_WRIST_Y: [0.0]
+  R_WRIST_P: [0.0]
+  R_WRIST_R: [0.0]
+  R_HAND_J0: [0.0]
+  R_HAND_J1: [0.0]
+  L_SHOULDER_P: [-0.052]
+  L_SHOULDER_R: [0.174444]
+  L_SHOULDER_Y: [0.0]
+  L_ELBOW_P: [-1.44]
+  L_WRIST_Y: [0.0]
+  L_WRIST_P: [0.0]
+  L_WRIST_R: [0.0]
+  L_HAND_J0: [0.0]
+  L_HAND_J1: [0.0]
 
 # Implement some additional text states
 states:
   InitialPose:
     base: SlowDance_Initial
-    #buttock_offset:
-      #translation: [1, 0.0, -0.4]
-      #rotation: [0.0, 0.0, 0.0]
+    buttock_offset:
+      translation: [0.0, 0, 0.05]
+      rotation: [0, -0.5, 0]
 
-  # # Inherit from this state if you want to start from the current posture
-  # # and only modify some joints
-  # CurrentPosture:
-  #   base: Posture
-  #   completion:
-  #     AND:
-  #       - eval: 0.6
-  #       - speed: 0.1
-  #   postureTask:
-  #     stiffness: 15
+  # Inherit from this state if you want to start from the current posture
+  # and only modify some joints
+  CurrentPosture:
+    base: Posture
+    completion:
+      AND:
+        - eval: 0.6
+        - speed: 0.1
+    postureTask:
+      stiffness: 10
 
-  # # Inherit from this state if you want to define a posture based on the default_seated_posture configuration
-  # DefaultSeatedPosture:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       <<: *default_seated_posture
+  # Inherit from this state if you want to define a posture based on the default_seated_posture configuration
+  DefaultSeatedPosture:
+    base: CurrentPosture
+    postureTask:
+      target:
+        <<: *default_seated_posture
 
-  # # Go the initial posture, that is the default_seated_posture defined above.
-  # # After reaching that posture, add contacts with the chair.
-  # # Note: This state is intended to be used with the robot in the air hanging from the ropes, and we will then lower it manually onto the chair
-  # #       In the future we can consider to write a controller to make it seat by itself, but that's much trickier
-  # InitialPosture:
-  #   base: DefaultSeatedPosture
-  #   AddContactsAfter:
-  #     - r1: hrp4
-  #       r2: chair
-  #       r1Surface: Buttock
-  #       r2Surface: Top
-  #     - r1: hrp4
-  #       r2: chair
-  #       r1Surface: Back
-  #       r2Surface: Back
-  #     # - r1: hrp4
-  #     #   r2: chair
-  #     #   r1Surface: LeftLowerArm
-  #     #   r2Surface: LeftHandle
-  #     # - r1: hrp4
-  #     #   r2: chair
-  #     #   r1Surface: RightLowerArm
-  #     #   r2Surface: RightHandle
+  # Go the initial posture, that is the default_seated_posture defined above.
+  # After reaching that posture, add contacts with the chair.
+  # Note: This state is intended to be used with the robot in the air hanging from the ropes, and we will then lower it manually onto the chair
+  #       In the future we can consider to write a controller to make it seat by itself, but that's much trickier
+  InitialPosture:
+    base: DefaultSeatedPosture
+    AddContactsAfter:
+      - r1: hrp4
+        r2: chair
+        r1Surface: Buttock
+        r2Surface: Top
+      - r1: hrp4
+        r2: chair
+        r1Surface: Back
+        r2Surface: Back
 
-  # #debut les mains se touchent
-  # # State_0:
-  # #   base: DefaultSeatedPosture
-  # #   postureTask:
-  # #     target:
-  # #       R_SHOULDER_P: [0.54]
-  # #   AddContactsAfter:
-  # #     - r1: hrp4
-  # #       r2: chair
-  # #       r1Surface: LeftLowerArm
-  # #       r2Surface: LeftHandle
-  # #     - r1: hrp4
-  # #       r2: chair
-  # #       r1Surface: RightLowerArm
-  # #       r2Surface: RightHandle
+  #debut les mains se touchent
+  
+  # State_0:
+  #   base: DefaultSeatedPosture
+  #   postureTask:
+  #     target:
+  #       R_SHOULDER_P: [0.54]
+  # State_00:
+  #   base: DefaultSeatedPosture
+  #   postureTask:
+  #     target:
+  #       L_SHOULDER_P: [0.7]
+  # State_0a:
+  #   base: DefaultSeatedPosture
+  #   postureTask:
+  #     target:
+  #       R_SHOULDER_P: [0.18]
+  #       NECK_Y: [-0.73]
+  # State_00a:
+  #   base: DefaultSeatedPosture
+  #   postureTask:
+  #     target:
+  #       L_SHOULDER_P: [0.7]
+  #       NECK_Y: [0.61]
+  State_1:
+    base: Posture
+    postureTask:
+      target:
+        R_SHOULDER_P: [-0.25]
+        L_SHOULDER_P: [-0.21]
+        R_ELBOW_P: [-0.55]
+        L_ELBOW_P: [-0.20]
+  State_2:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_R: [1.38]
+        L_SHOULDER_Y: [1.22]
+  State_3:
+    base: CurrentPosture
+    completion:
+      AND:
+        - eval: 0.6
+        - speed: 0.1
+    postureTask:
+      target:
+       NECK_Y: [0.78]
+  State_4:
+    base: CurrentPosture
+    postureTask:
+      target:
+        NECK_Y: [0.00]
+        L_SHOULDER_R: [0.37]
+  State_5:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-1.49]
+        L_ELBOW_P: [-1.68]
+  State_6:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_SHOULDER_Y: [-0.93]
+        L_SHOULDER_Y: [0.99]
+  State_7:
+    base: DefaultSeatedPosture
+  State_8:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_Y: [-0.77]
+        L_SHOULDER_Y: [0.89]
+  State_9:
+    base: DefaultSeatedPosture
+  State_10:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_Y: [-0.77]
+        L_SHOULDER_Y: [0.89]
+  State_7a:
+    base: DefaultSeatedPosture
+  State_8a:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_Y: [-0.77]
+        L_SHOULDER_Y: [0.89]
+  State_9a:
+    base: DefaultSeatedPosture
+  State_10a:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_Y: [-0.77]
+        L_SHOULDER_Y: [0.89]
+  State_10c:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_Y: [-0.77]
+        L_SHOULDER_Y: [0.89]
+  State_11:
+    base: DefaultSeatedPosture
+  State_12:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_P: [0.14]
+        L_SHOULDER_P: [0.10]
+  State_13:
+    base: DefaultSeatedPosture
+  State_14:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_P: [-0.072]
+        L_SHOULDER_P: [-0.25]
+  State_11a:
+    base: DefaultSeatedPosture
+  State_12a:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_P: [0.14]
+        L_SHOULDER_P: [0.10]
+  State_13a:
+    base: DefaultSeatedPosture
+  State_14a:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        R_SHOULDER_P: [-0.072]
+        L_SHOULDER_P: [-0.25]
+  State_15:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        CHEST_P: [0.39]
+        R_SHOULDER_P: [-1.04]
+        R_SHOULDER_Y: [0.89]
+        R_ELBOW_P: [-1.81]
+        R_WRIST_Y: [-1.25]
+        R_WRIST_R: [0.48]
 
-  # # State_00:
-  # #   base: State_0
-  # #   postureTask:
-  # #     target:
-  # #       L_SHOULDER_P: [0.7]
-  # # State_0a:
-  # #   base: State_00
-  # #   postureTask:
-  # #     target:
-  # #       R_SHOULDER_P: [0.18]
-  # #       NECK_Y: [-0.73]
-  # # State_00a:
-  # #   base: State_0a
-  # #   postureTask:
-  # #     target:
-  # #       L_SHOULDER_P: [0.7]
-  # #       NECK_Y: [0.61]
-  # State_1:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_P: [-0.25]
-  #       L_SHOULDER_P: [-0.21]
-  #       R_ELBOW_P: [-0.55]
-  #       L_ELBOW_P: [-0.20]
-  # State_2:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_R: [1.38]
-  #       L_SHOULDER_Y: [1.22]
-  # State_3:
-  #   base: CurrentPosture
-  #   completion:
-  #     AND:
-  #       - eval: 0.6
-  #       - speed: 0.1
-  #   postureTask:
-  #     target:
-  #      NECK_Y: [0.78]
-  # State_4:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       NECK_Y: [0.00]
-  #       L_SHOULDER_R: [0.37]
-  # State_5:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-1.49]
-  #       L_ELBOW_P: [-1.68]
-  # State_6:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_Y: [-0.93]
-  #       L_SHOULDER_Y: [0.99]
-  # State_7:
-  #   base: DefaultSeatedPosture
-  # State_8:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_Y: [-0.77]
-  #       L_SHOULDER_Y: [0.89]
-  # State_9:
-  #   base: DefaultSeatedPosture
-  # State_10:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_Y: [-0.77]
-  #       L_SHOULDER_Y: [0.89]
-  # State_7a:
-  #   base: DefaultSeatedPosture
-  # State_8a:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_Y: [-0.77]
-  #       L_SHOULDER_Y: [0.89]
-  # State_9a:
-  #   base: DefaultSeatedPosture
-  # State_10a:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_Y: [-0.77]
-  #       L_SHOULDER_Y: [0.89]
-  # State_10c:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_Y: [-0.77]
-  #       L_SHOULDER_Y: [0.89]
-  # State_11:
-  #   base: DefaultSeatedPosture
-  # State_12:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_P: [0.14]
-  #       L_SHOULDER_P: [0.10]
-  # State_13:
-  #   base: DefaultSeatedPosture
-  # State_14:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_P: [-0.072]
-  #       L_SHOULDER_P: [-0.25]
-  # State_11a:
-  #   base: DefaultSeatedPosture
-  # State_12a:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_P: [0.14]
-  #       L_SHOULDER_P: [0.10]
-  # State_13a:
-  #   base: DefaultSeatedPosture
-  # State_14a:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       R_SHOULDER_P: [-0.072]
-  #       L_SHOULDER_P: [-0.25]
-  # State_15:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       CHEST_P: [0.39]
-  #       R_SHOULDER_P: [-1.04]
-  #       R_SHOULDER_Y: [0.89]
-  #       R_ELBOW_P: [-1.81]
-  #       R_WRIST_Y: [-1.25]
-  #       R_WRIST_R: [0.48]
-
-  # State_16:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_Y: [0.48]
-  # State_17:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_Y: [-0.32]
-  # State_16a:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_Y: [0.48]
-  # State_17a:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_Y: [-0.32]
-  # State_20:
-  #   base: DefaultSeatedPosture
-  #   postureTask:
-  #     target:
-  #       L_ELBOW_P: [-0.095]
-  #       L_SHOULDER_R: [1.48]
-  #       L_SHOULDER_Y: [0.96]
-  #       R_ELBOW_P: [-0.052]
-  #       R_SHOULDER_R: [-1.46]
-  #       R_SHOULDER_Y: [0.44]
-  # State_21:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_Y: [-0.54]
-  #       R_SHOULDER_Y: [1.34]
-  # State_21a:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_Y: [0.96]
-  #       R_SHOULDER_Y: [0.44]
-  # State_22:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_P: [0.32]
-  #       R_SHOULDER_P: [-0.86]
-  #       R_ELBOW_P: [-1.23]
-  #       L_ELBOW_P: [-1.20]
-  # State_22a:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       L_SHOULDER_P: [0.32]
-  #       R_SHOULDER_P: [-0.86]
-  #       R_ELBOW_P: [-1.23]
-  #       L_ELBOW_P: [-1.20]
-  # State_23:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-1.47]
-  #       L_ELBOW_P: [-0.79]
-  # State_24:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-0.79]
-  #       L_ELBOW_P: [-1.79]
-  # State_23a:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-1.47]
-  #       L_ELBOW_P: [-0.79]
-  # State_24a:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-0.79]
-  #       L_ELBOW_P: [-1.79]
-  # State_23b:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-1.47]
-  #       L_ELBOW_P: [-1.79]
-  # State_24b:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-0.79]
-  #       L_ELBOW_P: [-0.79]
-  # State_23c:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-1.47]
-  #       L_ELBOW_P: [-0.79]
-  # State_24c:
-  #   base: CurrentPosture
-  #   postureTask:
-  #     target:
-  #       R_ELBOW_P: [-0.79]
-  #       L_ELBOW_P: [-1.79]
+  State_16:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_Y: [0.48]
+  State_17:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_Y: [-0.32]
+  State_16a:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_Y: [0.48]
+  State_17a:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_Y: [-0.32]
+  State_20:
+    base: DefaultSeatedPosture
+    postureTask:
+      target:
+        L_ELBOW_P: [-0.095]
+        L_SHOULDER_R: [1.48]
+        L_SHOULDER_Y: [0.96]
+        R_ELBOW_P: [-0.052]
+        R_SHOULDER_R: [-1.46]
+        R_SHOULDER_Y: [0.44]
+  State_21:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_Y: [-0.54]
+        R_SHOULDER_Y: [1.34]
+  State_21a:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_Y: [0.96]
+        R_SHOULDER_Y: [0.44]
+  State_22:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_P: [0.32]
+        R_SHOULDER_P: [-0.86]
+        R_ELBOW_P: [-1.23]
+        L_ELBOW_P: [-1.20]
+  State_22a:
+    base: CurrentPosture
+    postureTask:
+      target:
+        L_SHOULDER_P: [0.32]
+        R_SHOULDER_P: [-0.86]
+        R_ELBOW_P: [-1.23]
+        L_ELBOW_P: [-1.20]
+  State_23:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-1.47]
+        L_ELBOW_P: [-0.79]
+  State_24:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-0.79]
+        L_ELBOW_P: [-1.79]
+  State_23a:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-1.47]
+        L_ELBOW_P: [-0.79]
+  State_24a:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-0.79]
+        L_ELBOW_P: [-1.79]
+  State_23b:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-1.47]
+        L_ELBOW_P: [-1.79]
+  State_24b:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-0.79]
+        L_ELBOW_P: [-0.79]
+  State_23c:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-1.47]
+        L_ELBOW_P: [-0.79]
+  State_24c:
+    base: CurrentPosture
+    postureTask:
+      target:
+        R_ELBOW_P: [-0.79]
+        L_ELBOW_P: [-1.79]
 
 
 
-  # Pause2s:
-  #   base: Pause
-  #   duration: 2
-  # Pause3s:
-  #   base: Pause
-  #   duration: 3
-  # Pause5s:
-  #   base: Pause
-  #   duration: 5
+  Pause2s:
+    base: Pause
+    duration: 2
+  Pause3s:
+    base: Pause
+    duration: 3
+  Pause5s:
+    base: Pause
+    duration: 5
 
-#   MotionFSM:
-#     base: Meta
-#     StepByStep: false
-#     transitions:
-#     - [InitialPose, OK, InitialPosture, Auto]
-#     - [InitialPosture, OK, State_1, Auto]
-#     - [State_1, OK, State_2, Auto]
-#     - [State_2, OK, State_3, Auto]
-#     - [State_3, OK, State_4, Auto]
-#     - [State_4, OK, State_5, Auto]
-#     # - [State_0, OK, State_00, Auto]
-#     # - [State_00, OK, State_0a, Auto]
-#     # - [State_0a, OK, State_00a, Auto]
-#     # - [State_00a, OK,  State_5, Auto]
-#     - [State_5, OK, State_6, Auto]
-#     - [State_6, OK, State_7, Auto]
-#     - [State_7, OK, State_8, Auto]
-#     - [State_8, OK, State_9, Auto]
-#     - [State_9, OK, State_10, Auto]
-#     - [State_10, OK, State_7a, Auto]
-#     - [State_7a, OK, State_8a, Auto]
-#     - [State_8a, OK, State_9a, Auto]
-#     - [State_9a, OK, State_10a, Auto]
-#     - [State_10a, OK, State_11, Auto]
-#     - [State_11, OK, State_12, Auto]
-#     - [State_12, OK, State_13, Auto]
-#     - [State_13, OK, State_14, Auto]
-#     - [State_14, OK, State_11a, Auto]
-#     - [State_11a, OK, State_12a, Auto]
-#     - [State_12a, OK, State_13a, Auto]
-#     - [State_13a, OK, State_14a, Auto]
-#     - [State_14a, OK, State_10c, Auto]
-#     - [State_10c, OK, State_15, Auto]
-#     - [State_15, OK, State_16, Auto]
-#     - [State_16, OK, State_17, Auto]
-#     - [State_17, OK, State_16a, Auto]
-#     - [State_16a, OK, State_17a, Auto]
-#     - [State_17a, OK, State_20, Auto]
-#     - [State_20, OK, State_21, Auto]
-#     - [State_21, OK, State_22, Auto]
-#     - [State_22, OK, State_23, Auto]
-#     - [State_23, OK, State_24, Auto]
-#     - [State_24, OK, State_23a, Auto]
-#     - [State_23a, OK, State_24a, Auto]
-#     - [State_24a, OK, State_23b, Auto]
-#     - [State_23b, OK, State_24b, Auto]
-#     - [State_24b, OK, State_23c, Auto]
-#     - [State_23c, OK, State_24c, Auto]
-#     - [State_24c, OK, HalfSitting, Auto]
+  MotionFSM:
+    base: Meta
+    StepByStep: false
+    transitions:
+    - [InitialPose, OK, InitialPosture, Auto]
+    - [InitialPosture, OK, State_1, Auto]
+    - [State_1, OK, State_2, Auto]
+    - [State_2, OK, State_3, Auto]
+    - [State_3, OK, State_4, Auto]
+    - [State_4, OK, State_5, Auto]
+    # - [State_0, OK, State_00, Auto]
+    # - [State_00, OK, State_0a, Auto]
+    # - [State_0a, OK, State_00a, Auto]
+    # - [State_00a, OK,  State_5, Auto]
+    - [State_5, OK, State_6, Auto]
+    - [State_6, OK, State_7, Auto]
+    - [State_7, OK, State_8, Auto]
+    - [State_8, OK, State_9, Auto]
+    - [State_9, OK, State_10, Auto]
+    - [State_10, OK, State_7a, Auto]
+    - [State_7a, OK, State_8a, Auto]
+    - [State_8a, OK, State_9a, Auto]
+    - [State_9a, OK, State_10a, Auto]
+    - [State_10a, OK, State_11, Auto]
+    - [State_11, OK, State_12, Auto]
+    - [State_12, OK, State_13, Auto]
+    - [State_13, OK, State_14, Auto]
+    - [State_14, OK, State_11a, Auto]
+    - [State_11a, OK, State_12a, Auto]
+    - [State_12a, OK, State_13a, Auto]
+    - [State_13a, OK, State_14a, Auto]
+    - [State_14a, OK, State_10c, Auto]
+    - [State_10c, OK, State_15, Auto]
+    - [State_15, OK, State_16, Auto]
+    - [State_16, OK, State_17, Auto]
+    - [State_17, OK, State_16a, Auto]
+    - [State_16a, OK, State_17a, Auto]
+    - [State_17a, OK, State_20, Auto]
+    - [State_20, OK, State_21, Auto]
+    - [State_21, OK, State_22, Auto]
+    - [State_22, OK, State_23, Auto]
+    - [State_23, OK, State_24, Auto]
+    - [State_24, OK, State_23a, Auto]
+    - [State_23a, OK, State_24a, Auto]
+    - [State_24a, OK, State_23b, Auto]
+    - [State_23b, OK, State_24b, Auto]
+    - [State_24b, OK, State_23c, Auto]
+    - [State_23c, OK, State_24c, Auto]
+    - [State_24c, OK, HalfSitting, Auto]
 
+  CoMState:
+    base: MetaTasks
+    tasks:
+      CoMTask:
+        type: com
+        weight: 1000
+        stiffness: 10
+        above: [LeftFoot, RightFoot]
 
-#states si test HRP4 real
-#   MotionFSM:
-#     base: Meta
-#     StepByStep: false
-#     transitions:
-#     - [InitialPose, OK, SlowDance_Initial, Auto]
-#   CoMState:
-#     base: MetaTasks
-#     tasks:
-#       CoMTask:
-#         type: com
-#         weight: 1000
-#         stiffness: 10
-#         above: [LeftFoot, RightFoot]
+  StabilizedMotion:
+    base: Parallel
+    states: [CoMState, MotionFSM]
 
-#   StabilizedMotion:
-#     base: Parallel
-#     states: [CoMState, MotionFSM]
-
-# # Transitions map
-# transitions:
-#   - [StabilizedMotion, OK, StabilizedMotion, Strict]
-
-# # Initial state
-# init: SlowDance_Initial
-
-# ObserverPipelines:
-#   name: "ObserverPipeline"
-#   gui: true
-#   observers:
-#     - type: Encoder
-#     - type: Attitude
-#       required: false
-#     - type: KinematicInertial
-#       config:
-#         anchorFrame:
-#           maxAnchorFrameDiscontinuity: 0.02
-
+# Transitions map
 transitions:
-- [InitialPose, OK, SlowDance_Initial, Auto]
+  - [StabilizedMotion, OK, StabilizedMotion, Strict]
 
-init: InitialPose
+# Initial state
+init: StabilizedMotion
 
-# transitions:
-# - [SlowDance_Initial, OK, SlowDance_Initial]
-# init: SlowDance_Initial
+ObserverPipelines:
+  name: "ObserverPipeline"
+  gui: true
+  observers:
+    - type: Encoder
+    - type: Attitude
+      required: false
+    - type: KinematicInertial
+      config:
+        anchorFrame:
+          maxAnchorFrameDiscontinuity: 0.02
