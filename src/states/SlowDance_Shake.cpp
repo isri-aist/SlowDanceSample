@@ -30,7 +30,7 @@ bool SlowDance_Shake::run(mc_control::fsm::Controller & ctl_)
   neck_posture[jointIndex][0] = -0.33;
 
   double b= 0.0;
-  for (int a= 0; a< neck_posture.size(); a++){
+  for (int a= 0; a< 4; a++){
     neck_posture[jointIndex][0] = 2 * sin (b); //b = 0 to 0.4
   
     b += 0.1;
