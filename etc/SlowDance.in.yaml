@@ -145,7 +145,7 @@ states:
   #       L_SHOULDER_P: [0.7]
   #       NECK_Y: [0.61]
   State_1:
-    base: Posture
+    base: Posture #when DefaultSeatedPosture ca donne QP
     postureTask:
       target:
         R_SHOULDER_P: [-0.25]
@@ -159,7 +159,7 @@ states:
         L_SHOULDER_R: [1.38]
         L_SHOULDER_Y: [1.22]
   State_3:
-    base: CurrentPosture
+    base: CurrentPosture #SlowDance_Initial it fells of the chair 
     completion:
       AND:
         - eval: 0.6
@@ -168,11 +168,11 @@ states:
       target:
        NECK_Y: [0.78]
   State_4:
-    base: CurrentPosture
-    postureTask:
-      target:
-        NECK_Y: [0.00]
-        L_SHOULDER_R: [0.37]
+    base: SlowDance_Shake #CurrentPosture
+    #postureTask:
+      #target:
+        #NECK_Y: [0.00]
+        #L_SHOULDER_R: [0.37]
   State_5:
     base: DefaultSeatedPosture
     postureTask:
