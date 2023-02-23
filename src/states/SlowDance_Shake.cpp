@@ -34,9 +34,14 @@ bool SlowDance_Shake::run(mc_control::fsm::Controller & ctl_)
   
   std::vector<double> neck_posture = ctl_.robot().q()[jointIndex]; // val du NECK_Y ?
   mc_rtc::log::info("size = {}", neck_posture.size()); // size 1 et valeur 0.0
+  value = 0.0;
+  t_++;
+  iter_++;
+  value = 30;
+  mc_rtc::log::info("index val. = {}", value);
 
-  neck_posture[0]+= 0.30;
- // neck_posture[0] = {0.80};
+  neck_posture[0]+= value;
+ 
   mc_rtc::log::info("index val. = {}", neck_posture[0]);
   //neckTask->target({{ jointName, neck_posture}});
     //neckTask->posture(neck_posture[0]);
