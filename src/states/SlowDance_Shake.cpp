@@ -2,89 +2,77 @@
 #include "../SlowDance.h"
 #include <mc_tasks/MetaTaskLoader.h>
 #include <mc_solver/ConstraintSetLoader.h>
+#include <map>
 
 void SlowDance_Shake::start(mc_control::fsm::Controller & ctl_)
 
 {
-  
-     
-  jointIndex = ctl_.robot().jointIndexByName(jointName);
-   
-  ctl_.solver().addTask(neckTask);
+	std::map<std::string, int> jointIndexes = {};
+	std::map<std::string, double> jointValues = {};
+	std::vector<std::vector<std::vector<double>>> desired_pos_vector = {{}};
+	std::vector<std::string> refJoint = ctl_.robot().refJointOrder();
+   // voir les index réel de chaque joint
+	for (int i=0; i<refJoint.size(); i++) {
+		std::cout << i << ' ' << refJoint[i] << std::endl;
+		jointIndexes.insert({ refJoint[i], ctl_.robot().jointIndexByName(refJoint[i])});
+    std::cout << i << ' ' <<  ctl_.robot().jointIndexByName(refJoint[i]) << std::endl;
+	}
 
-
-  postureTask = ctl_.getPostureTask(ctl_.robot().name()); 
+	jointValues.insert({"R_HIP_Y", 0.0});
+	jointValues.insert({"R_HIP_R", -0.02});
+	jointValues.insert({"R_HIP_P", -0.95});
+	jointValues.insert({"R_KNEE_P", 1.4});
+	jointValues.insert({"R_ANKLE_P", 0.1});
+	jointValues.insert({"R_ANKLE_R", 0.13});
+	jointValues.insert({"L_HIP_Y", 0.0});
+	jointValues.insert({"L_HIP_R", 0.02});
+	jointValues.insert({"L_HIP_P", -0.95});
+	jointValues.insert({"L_KNEE_P", 1.4});
+	jointValues.insert({"L_ANKLE_P", 0.1});
+	jointValues.insert({"L_ANKLE_R", -0.13});
+	jointValues.insert({"CHEST_P", 0.5});
+	jointValues.insert({"CHEST_Y", 0.0});
+	jointValues.insert({"NECK_Y", 0.33});
+	jointValues.insert({"NECK_P", 0.0});
+	jointValues.insert({"R_SHOULDER_P", -0.052});
+	jointValues.insert({"R_SHOULDER_R", -0.174444});
+	jointValues.insert({"R_SHOULDER_Y", 0.0});
+	jointValues.insert({"R_ELBOW_P", -1.44});
+	jointValues.insert({"R_WRIST_Y", 0.0});
+	jointValues.insert({"R_WRIST_P", 0.0});
+	jointValues.insert({"R_WRIST_R", 0.0});
+	jointValues.insert({"R_HAND_J0", 0.0});
+	jointValues.insert({"R_HAND_J1", 0.0});
+	jointValues.insert({"L_SHOULDER_P", -0.052});
+	jointValues.insert({"L_SHOULDER_R", 0.174444});
+	jointValues.insert({"L_SHOULDER_Y", 0.0});
+	jointValues.insert({"L_ELBOW_P", -1.44});
+	jointValues.insert({"L_WRIST_Y", 0.0});
+	jointValues.insert({"L_WRIST_P", 0.0});
+	jointValues.insert({"L_WRIST_R", 0.0});
+	jointValues.insert({"L_HAND_J0", 0.0});
+	jointValues.insert({"L_HAND_J1", 0.0});
  
-  postureTask->stiffness(200);
-  
-  neckTask = std::make_shared<mc_tasks::PostureTask>(ctl_.solver(), ctl_.robot().robotIndex(), 100, 10);
-  
-  //value[0].push_back({{0.0}, {0.33}, {-0.33}, {0.66}, {-0.66}, {0.0}, {0.33}, {-0.33}, {0.66}, {-0.66}});
-
-  //neckTask->selectActiveJoints(ctl_.solver(), {"NECK_Y"}); 
-  value = 0.0;
-
+	// ctl_.solver().addTask(neckTask);
+  	//postureTask = ctl_.getPostureTask(ctl_.robot().name()); 
+  	//postureTask->stiffness(200);
+  	// neckTask = std::make_shared<mc_tasks::PostureTask>(ctl_.solver(), ctl_.robot().robotIndex(), 100, 10);
 }
 
 
 bool SlowDance_Shake::run(mc_control::fsm::Controller & ctl_)
 {
+	for (const auto& [key, value] : jointValues)
+  		postureTask->target({{key, {{value}}}});
 
-  //auto neck_posture = ctl_.robot().mbc().q; //prend les valeurs actuelles des joints 
-  
-  std::vector<double> neck_posture = ctl_.robot().q()[jointIndex]; // val du NECK_Y ?
-  mc_rtc::log::info("size = {}", neck_posture.size()); // size 1 et valeur 0.0
-  value = 0.0;
-  t_++;
-  iter_++;
-  value = 30;
-  mc_rtc::log::info("index val. = {}", value);
-
-  neck_posture[0]+= value;
- 
-  mc_rtc::log::info("index val. = {}", neck_posture[0]);
-  //neckTask->target({{ jointName, neck_posture}});
-    //neckTask->posture(neck_posture[0]);
-   ctl_.robot().q()[jointIndex] = neck_posture;
-
-//   for (int i = 0; i < 10; i++)
-// {
-//         neck_posture[0]+= 0.30;
-//         
-//         mc_rtc::log::info("index val. = {}", neck_posture[0]);  
-// }
-
-  
-  
-  // for (int a= 0; a< neck_posture.size(); a++){
-  // neck_posture[jointIndex][0] = value;
-  // std::for_each(value.begin(), value.end(), [](double& d) { d+=0.33;});
-  
-  // mc_rtc::log::info("value = {}", neck_posture[jointIndex][0]);
- 
-  // }
-
-
-// for (int a= 0; a< 10; a++){ //10 was before neck_posture.size()
-  
-//  value+= 0.33;
-  
-// // ref postureTask->target({{ jointName, robot().qu()[jointIndex] }});
-  
-// mc_rtc::log::info("value = {}", value);
-// //neckTask->target({{ jointName, {0.1*sin(value)} }});
-// } 
-
-
-//std::for_each(value[0].begin(), value[0].end(), [](double& d) { d+=0.33;});
-
-
-  
-  
   output("OK");
-  return true;
-  
+  if (iter_ > 9999) {
+  	return true;
   }
+  iter_++;
+  return false;
+
+}
 
 
 void SlowDance_Shake::teardown(mc_control::fsm::Controller & ctl_)
