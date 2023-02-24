@@ -469,8 +469,7 @@ states:
 
 transitions:
 - [InitialPose, OK, InitialPosture, Auto]
-- [InitialPosture, OK, Pause2s, Auto]
-- [Pause2s, OK, SlowDance_Initial, Auto]
+- [InitialPosture, OK,  SlowDance_Initial, Auto]
 - [SlowDance_Initial, OK, SlowDance_Shake, Auto]
 - [SlowDance_Shake, OK, InitialPosture, Auto]
 # Initial state

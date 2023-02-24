@@ -16,15 +16,16 @@ struct SlowDance_Shake : mc_control::fsm::State
 private:
 std::shared_ptr<mc_tasks::PostureTask> postureTask;
 //std::shared_ptr<mc_tasks::PostureTask> neckTask;
-// std::string jointName = "NECK_Y";
-//int jointIndex = 0;
+std::string jointName = "NECK_Y";
+int jointIndex = 0;
 //std::vector<double> neck_posture;
-std::map<std::string, int> jointIndexes;
-std::map<std::string, double> jointValues;
+// std::map<std::string, int> jointIndexes;
+// std::map<std::string, double> jointValues;
 std::vector<std::vector<std::vector<double>>> desired_pos_vector;
-//double value;
+double value;
+double new_value;
 unsigned iter_ = 0;
 int index_ = 0;
-int t_ = 2000;
+int t_ = 200;
 
 };
