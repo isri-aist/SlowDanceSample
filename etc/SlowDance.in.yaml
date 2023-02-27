@@ -378,6 +378,25 @@ states:
         L_ELBOW_P: [-1.79]
 
 
+  InterpolatePosture:
+    base: SlowDance_InterpolatePosture
+    posture_task:
+      stiffness: 100
+    posture_sequence:
+      -
+        - 0.0
+        - R_SHOULDER_R: -1.5
+          L_SHOULDER_R: 1.5
+      -
+        - 2.0
+        - R_SHOULDER_Y: -1.5
+          L_SHOULDER_Y: 1.5
+      -
+        - 4.0
+        - R_SHOULDER_P: -2.56
+          R_ELBOW_P: 0.0
+          L_SHOULDER_P: -2.56
+          L_ELBOW_P: 0.0
 
   Pause2s:
     base: Pause
@@ -456,7 +475,6 @@ states:
 # Transitions map
 transitions:
   - [StabilizedMotion, OK, StabilizedMotion, Strict]
-
 # Initial state
 init: StabilizedMotion
 
