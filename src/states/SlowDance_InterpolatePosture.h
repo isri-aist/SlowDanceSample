@@ -17,6 +17,14 @@ struct Shake
     freq = config("frequency");
     amplitude = config("amplitude");
   }
+
+  mc_rtc::Configuration save() const
+  {
+    mc_rtc::Configuration c;
+    c.add("frequency", freq);
+    c.add("amplitude", amplitude);
+    return c;
+  }
 };
 
 namespace mc_rtc
@@ -33,7 +41,7 @@ struct ConfigurationLoader<Shake>
 
   static mc_rtc::Configuration save(const Shake & object)
   {
-    return mc_rtc::Configuration{};
+    return object.save();
   }
 };
 } // namespace mc_rtc
@@ -56,6 +64,15 @@ struct PostureConfig
       shake = config("shake");
     }
   }
+
+  mc_rtc::Configuration save() const
+  {
+    mc_rtc::Configuration c;
+    c.add("time", t);
+    c.add("posture", posture);
+    c.add("shake", shake);
+    return c;
+  }
 };
 
 namespace mc_rtc
@@ -72,7 +89,7 @@ struct ConfigurationLoader<PostureConfig>
 
   static mc_rtc::Configuration save(const PostureConfig & object)
   {
-    return mc_rtc::Configuration{};
+    return object.save();
   }
 };
 } // namespace mc_rtc
