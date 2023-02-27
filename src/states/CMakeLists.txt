@@ -1,3 +1,4 @@
 add_fsm_state_simple(SlowDance_Initial)
+add_fsm_state_simple(SlowDance_InterpolatePosture)
 
 add_fsm_data_directory(data)
