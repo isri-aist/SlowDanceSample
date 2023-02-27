@@ -4,6 +4,79 @@
 #include <mc_trajectory/SequenceInterpolator.h>
 #include <Eigen/Core>
 
+/**
+ * Configuration for the shaking motion (per-joint)
+ */
+struct Shake
+{
+  double freq = 10;
+  double amplitude = 1.0;
+
+  void load(const mc_rtc::Configuration & config)
+  {
+    freq = config("frequency");
+    amplitude = config("amplitude");
+  }
+};
+
+namespace mc_rtc
+{
+template<>
+struct ConfigurationLoader<Shake>
+{
+  static Shake load(const mc_rtc::Configuration & config)
+  {
+    Shake shake;
+    shake.load(config);
+    return shake;
+  }
+
+  static mc_rtc::Configuration save(const Shake & object)
+  {
+    return mc_rtc::Configuration{};
+  }
+};
+} // namespace mc_rtc
+
+/**
+ * Configuration for a posture
+ */
+struct PostureConfig
+{
+  double t;
+  std::map<std::string, double> posture;
+  std::map<std::string, Shake> shake;
+
+  void load(const mc_rtc::Configuration & config)
+  {
+    t = config("time");
+    posture = config("posture");
+    if(config.has("shake"))
+    {
+      shake = config("shake");
+    }
+  }
+};
+
+namespace mc_rtc
+{
+template<>
+struct ConfigurationLoader<PostureConfig>
+{
+  static PostureConfig load(const mc_rtc::Configuration & config)
+  {
+    PostureConfig shake;
+    shake.load(config);
+    return shake;
+  }
+
+  static mc_rtc::Configuration save(const PostureConfig & object)
+  {
+    return mc_rtc::Configuration{};
+  }
+};
+} // namespace mc_rtc
+
 struct SlowDance_InterpolatePosture : mc_control::fsm::State
 {
 
@@ -17,4 +90,6 @@ private:
   using PostureInterpolator = mc_trajectory::SequenceInterpolator<Eigen::VectorXd>;
   PostureInterpolator interpolator_;
   double t_{0};
+
+  std::vector<PostureConfig> postureSequence_;
 };

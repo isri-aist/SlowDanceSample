@@ -1,30 +1,29 @@
 #include "SlowDance_InterpolatePosture.h"
 
+#include <mc_rtc/io_utils.h>
 #include "../SlowDance.h"
 
 void SlowDance_InterpolatePosture::start(mc_control::fsm::Controller & ctl)
 {
   // Parse the desired posture sequence.
-  // We expect a vector of timed posture, where each posture is a map of
-  // actuated joint name and its desired value. Some actuated joints may be
-  // ommited, in which case their previous value is used.
+  // We expect a vector of PostureConfig
   // Example in yaml:
-  //   posture_sequence:
-  //     -
-  //       - 0.0
-  //       - R_SHOULDER_R: -1.5
-  //         L_SHOULDER_R: 1.5
-  //     -
-  //       - 2.0
-  //       - R_SHOULDER_Y: -1.5
-  //         L_SHOULDER_Y: 1.5
-  //     -
-  //       - 4.0
-  //       - R_SHOULDER_P: -2.56
-  //         R_ELBOW_P: 0.0
-  //         L_SHOULDER_P: -2.56
-  //         L_ELBOW_P: 0.0
-  std::vector<std::pair<double, std::map<std::string, double>>> postureSequence = config_("posture_sequence");
+  //  posture_sequence:
+  //    - time: 0.0
+  //      posture:
+  //        R_SHOULDER_P: -0.25
+  //        L_SHOULDER_P: -0.21
+  //        R_ELBOW_P: -0.55
+  //        L_ELBOW_P: -0.20
+  //    - time: 2.0
+  //      posture:
+  //        L_SHOULDER_R: 1.38
+  //        L_SHOULDER_Y: 1.22
+  //      shake:
+  //        NECK_Y:
+  //          frequency: 10 # Hz
+  //          amplitude: 1 # rad
+  postureSequence_ = config_("posture_sequence");
   // Get the list of actuated joints
   const auto & rjo = ctl.robot().refJointOrder();
   // Create a vector used to store the desired value for each actuated joint
@@ -33,8 +32,10 @@ void SlowDance_InterpolatePosture::start(mc_control::fsm::Controller & ctl)
   // Create the interpolator values
   PostureInterpolator::TimedValueVector interpolatorValues;
   // For each timed posture in the sequence
-  for(const auto & [t, postureMap] : postureSequence)
+  for(const auto & postureConfig : postureSequence_)
   {
+    double t = postureConfig.t;
+    const auto & postureMap = postureConfig.posture;
     // For each actuated joint
     for(int i = 0; i < rjo.size(); ++i)
     {
@@ -70,15 +71,40 @@ void SlowDance_InterpolatePosture::start(mc_control::fsm::Controller & ctl)
 
 bool SlowDance_InterpolatePosture::run(mc_control::fsm::Controller & ctl_)
 {
+  const auto & rjo = ctl_.robot().refJointOrder();
+
   // Compute the interpolated posture at the current time
   auto desiredPosture = interpolator_.compute(t_);
+
+  // Shake
+  auto currPostureSeq =
+      std::find_if(postureSequence_.begin(), postureSequence_.end(), [this](const auto & p) { return p.t > t_; });
+  currPostureSeq--;
+  if(currPostureSeq != postureSequence_.end())
+  {
+    mc_rtc::log::info("Should shake (t={}, posture t= {})", t_, currPostureSeq->t);
+    const auto & shakeMap = currPostureSeq->shake;
+    mc_rtc::log::info("Joints: {}", mc_rtc::io::to_string(shakeMap, [](const auto & m) { return m.first; }));
+    // For each actuated joint
+    for(int i = 0; i < rjo.size(); ++i)
+    {
+      // Shake
+      const auto & actuatedJoint = rjo[i];
+      if(shakeMap.count(actuatedJoint))
+      {
+        const auto & shakeConfig = shakeMap.at(actuatedJoint);
+        double shakeVal = shakeConfig.amplitude * sin(shakeConfig.freq * t_);
+        desiredPosture(i) += shakeVal;
+        mc_rtc::log::info("Shaking joint {} : {}", actuatedJoint, shakeVal);
+      }
+    }
+  }
 
   // Get the posture task
   auto & postureTask = *ctl_.getPostureTask(ctl_.robot().name());
   // Copy the current posture target
   auto posture = postureTask.posture();
 
-  const auto & rjo = ctl_.robot().refJointOrder();
   // For each actuated joint
   for(int i = 0; i < rjo.size(); ++i)
   {
@@ -86,6 +112,7 @@ bool SlowDance_InterpolatePosture::run(mc_control::fsm::Controller & ctl_)
     // Set the posture target for this actuated joint to its interpolated value
     posture[ctl_.robot().jointIndexInMBC(i)][0] = desiredPosture[i];
   }
+
   // Change the posture target in the posture task
   postureTask.posture(posture);
 
