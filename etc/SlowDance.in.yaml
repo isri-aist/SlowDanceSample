@@ -100,6 +100,10 @@ states:
   # Inherit from this state if you want to define a posture based on the default_seated_posture configuration
   DefaultSeatedPosture:
     base: CurrentPosture
+    completion:
+      AND:
+        - eval: 0.2
+        - speed: 0.01
     postureTask:
       target:
         <<: *default_seated_posture
@@ -121,7 +125,7 @@ states:
         r2Surface: Back
 
   #debut les mains se touchent
-  
+
   # State_0:
   #   base: DefaultSeatedPosture
   #   postureTask:
@@ -145,7 +149,7 @@ states:
   #       L_SHOULDER_P: [0.7]
   #       NECK_Y: [0.61]
   State_1:
-    base: Posture #when DefaultSeatedPosture ca donne QP
+    base: Posture
     postureTask:
       target:
         R_SHOULDER_P: [-0.25]
@@ -159,7 +163,7 @@ states:
         L_SHOULDER_R: [1.38]
         L_SHOULDER_Y: [1.22]
   State_3:
-    base: CurrentPosture #SlowDance_Initial it fells of the chair 
+    base: CurrentPosture #SlowDance_Initial it fells of the chair
     completion:
       AND:
         - eval: 0.6
