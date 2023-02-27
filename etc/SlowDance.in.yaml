@@ -145,7 +145,7 @@ states:
           L_SHOULDER_Y: 1.22
         shake:
           NECK_Y:
-            frequency: 10 # Hz
+            period: 1 # [s]
             amplitude: 1 # rad
       - time: 4.0
         posture:

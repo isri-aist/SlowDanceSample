@@ -21,7 +21,7 @@ void SlowDance_InterpolatePosture::start(mc_control::fsm::Controller & ctl)
   //        L_SHOULDER_Y: 1.22
   //      shake:
   //        NECK_Y:
-  //          frequency: 10 # Hz
+  //          period: 0.1 # s
   //          amplitude: 1 # rad
   postureSequence_ = config_("posture_sequence");
   // Get the list of actuated joints
@@ -82,9 +82,9 @@ bool SlowDance_InterpolatePosture::run(mc_control::fsm::Controller & ctl_)
   currPostureSeq--;
   if(currPostureSeq != postureSequence_.end())
   {
-    mc_rtc::log::info("Should shake (t={}, posture t= {})", t_, currPostureSeq->t);
     const auto & shakeMap = currPostureSeq->shake;
-    mc_rtc::log::info("Joints: {}", mc_rtc::io::to_string(shakeMap, [](const auto & m) { return m.first; }));
+    // mc_rtc::log::info("Should shake (t={}, posture t= {})", t_, currPostureSeq->t);
+    // mc_rtc::log::info("Joints: {}", mc_rtc::io::to_string(shakeMap, [](const auto & m) { return m.first; }));
     // For each actuated joint
     for(int i = 0; i < rjo.size(); ++i)
     {
@@ -93,9 +93,15 @@ bool SlowDance_InterpolatePosture::run(mc_control::fsm::Controller & ctl_)
       if(shakeMap.count(actuatedJoint))
       {
         const auto & shakeConfig = shakeMap.at(actuatedJoint);
-        double shakeVal = shakeConfig.amplitude * sin(shakeConfig.freq * t_);
+        // Shake value such that it starts with
+        // - Shake = 0 for t_ = currPostureSeq->t (no motion initially)
+        // - It shakes with period shakeConfig.period around the current joint
+        // trajectory value
+        // - It shakes with amplitude shakeConfig.amplitude
+        double shakeVal =
+            shakeConfig.amplitude * sin(2 * mc_rtc::constants::PI / shakeConfig.period * (t_ - currPostureSeq->t));
         desiredPosture(i) += shakeVal;
-        mc_rtc::log::info("Shaking joint {} : {}", actuatedJoint, shakeVal);
+        // mc_rtc::log::info("Shaking joint {} : {}", actuatedJoint, shakeVal);
       }
     }
   }

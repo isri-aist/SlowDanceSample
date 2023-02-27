@@ -9,19 +9,19 @@
  */
 struct Shake
 {
-  double freq = 10;
+  double period = 1;
   double amplitude = 1.0;
 
   void load(const mc_rtc::Configuration & config)
   {
-    freq = config("frequency");
+    period = config("period");
     amplitude = config("amplitude");
   }
 
   mc_rtc::Configuration save() const
   {
     mc_rtc::Configuration c;
-    c.add("frequency", freq);
+    c.add("period", period);
     c.add("amplitude", amplitude);
     return c;
   }
