@@ -83,7 +83,7 @@ states:
   InitialPose:
     base: SlowDance_Initial
     buttock_offset:
-      translation: [0.0, 0, 0.05]
+      translation: [0.0, 0, 0.25]
       rotation: [0, -0.5, 0]
 
   # Inherit from this state if you want to start from the current posture
@@ -131,7 +131,7 @@ states:
   InterpolatePosture:
     base: SlowDance_InterpolatePosture
     posture_task:
-      stiffness: 500
+      stiffness: 5000
     posture_sequence:
       - time: 0.0
         posture:
@@ -230,12 +230,6 @@ states:
         posture:
           L_SHOULDER_Y: 0.96
           R_SHOULDER_Y: 0.44
-      - time: 42.0
-        posture:
-          L_SHOULDER_P: 0.32
-          R_SHOULDER_P: -0.86
-          R_ELBOW_P: -1.23
-          L_ELBOW_P: -1.20
       - time: 44.0
         posture:
           L_SHOULDER_P: 0.32
@@ -244,21 +238,27 @@ states:
           L_ELBOW_P: -1.20
       - time: 46.0
         posture:
-          R_ELBOW_P: -1.47
-          L_ELBOW_P: -0.79
+          L_SHOULDER_P: 0.32
+          R_SHOULDER_P: -0.86
+          R_ELBOW_P: -1.23
+          L_ELBOW_P: -1.20
       - time: 48.0
         posture:
+          R_ELBOW_P: -1.47
+          L_ELBOW_P: -0.79
+      - time: 50.0
+        posture:
           R_ELBOW_P: -0.79
           L_ELBOW_P: -1.79
-      - time: 50.0
+      - time: 52.0
         posture:
           R_ELBOW_P: -1.47
           L_ELBOW_P: -0.79
-      - time: 52.0
+      - time: 54.0
         posture:
           R_ELBOW_P: -0.79
           L_ELBOW_P: -1.79
-      - time: 54.0
+      - time: 56.0
         posture:
           R_ELBOW_P: -1.47
           L_ELBOW_P: -1.79
@@ -348,7 +348,7 @@ states:
 
   StabilizedMotion:
     base: Parallel
-    states: [CoMState, MotionFSM]
+    states: [MotionFSM]
 
 # Transitions map
 transitions:

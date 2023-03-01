@@ -6,7 +6,6 @@ void SlowDance_Initial::start(mc_control::fsm::Controller & ctl_)
 {
   // Compute initial base_link pose such that the Buttock surface is on the
   // chair Top surface
-
   auto X_0_chairTop = ctl_.robot("chair").frame("Top").position();
   auto X_0_buttock = ctl_.robot().frame("Buttock").position();
   auto buttock_offset = config_("buttock_offset", sva::PTransformd::Identity());
